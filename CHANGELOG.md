@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.0.17](https://github.com/monitoring-forge/mackerel-plugin-maxcpu/compare/v0.0.16...v0.0.17) - 2026-07-26
+
+- ci: bump the dependencies group with 3 updates by @dependabot[bot] in https://github.com/monitoring-forge/mackerel-plugin-maxcpu/pull/41
+- fix Help exit code. use constant by @kazeburo in https://github.com/monitoring-forge/mackerel-plugin-maxcpu/pull/42
+
 ## [v0.0.16](https://github.com/monitoring-forge/mackerel-plugin-maxcpu/compare/v0.0.15...v0.0.16) - 2026-07-23
 
 - Feat/repo transfer and improve socket check by @kazeburo in https://github.com/monitoring-forge/mackerel-plugin-maxcpu/pull/39
