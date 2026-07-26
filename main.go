@@ -24,6 +24,11 @@ import (
 var version string
 var commit string
 
+const UNKNOWN = 3
+const CRITICAL = 2
+const WARNING = 1
+const OK = 0
+
 type Opt struct {
 	Socket   string `short:"s" long:"socket" required:"true" description:"Socket file used calcurating daemon" `
 	AsDaemon bool   `long:"as-daemon" description:"run as daemon"`
@@ -66,16 +71,16 @@ func execBackground(opt *Opt) int {
 	_, err := statworker.GetStat()
 	if err != nil {
 		log.Printf("%v", err)
-		return 1
+		return CRITICAL
 	}
 
 	cmd := exec.Command(os.Args[0], "--as-daemon", "--socket", opt.Socket)
 	err = cmd.Start()
 	if err != nil {
 		log.Printf("%v", err)
-		return 1
+		return CRITICAL
 	}
-	return 0
+	return OK
 }
 
 var maxIdleTime int64 = 600
@@ -94,7 +99,7 @@ func runBackground(opt *Opt) int {
 	modified, err := selfModified()
 	if err != nil {
 		log.Printf("%v", err)
-		return 1
+		return CRITICAL
 	}
 
 	worker := statworker.New()
@@ -121,11 +126,11 @@ func runBackground(opt *Opt) int {
 	unixListener, err := net.Listen("unix", opt.Socket)
 	if err != nil {
 		log.Printf("%v", err)
-		return 1
+		return CRITICAL
 	}
 	if err := os.Chmod(opt.Socket, 0600); err != nil {
 		log.Printf("%v", err)
-		return 1
+		return CRITICAL
 	}
 	srv := &http.Server{Handler: mux}
 	go func() {
@@ -137,7 +142,7 @@ func runBackground(opt *Opt) int {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	_ = srv.Shutdown(ctx)
-	return 0
+	return OK
 }
 
 func checkDaemonAlive(opt *Opt) bool {
@@ -158,7 +163,7 @@ func getStats(opt *Opt) int {
 	res, err := opt.client.GetStats(ctx, connect.NewRequest(&emptypb.Empty{}))
 	if err != nil {
 		log.Printf("%v", err)
-		return 1
+		return CRITICAL
 	}
 	for _, m := range res.Msg.Metrics {
 		fmt.Printf(
@@ -168,7 +173,7 @@ func getStats(opt *Opt) int {
 			m.Epoch,
 		)
 	}
-	return 0
+	return OK
 }
 
 func makeClient(socket string) (maxcpuconnect.MaxCPUClient, error) {
@@ -220,11 +225,15 @@ func _main() int {
 			runtime.GOARCH,
 			runtime.Version(),
 			commit)
-		return 0
+		return OK
+	}
+	if err != nil && flags.WroteHelp(err) {
+		fmt.Fprintf(os.Stdout, "%v\n", err)
+		return OK
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
-		return 1
+		return UNKNOWN
 	}
 
 	if opt.AsDaemon {
@@ -234,7 +243,7 @@ func _main() int {
 	client, err := makeClient(opt.Socket)
 	if err != nil {
 		log.Printf("%v", err)
-		return 1
+		return CRITICAL
 	}
 	opt.client = client
 
