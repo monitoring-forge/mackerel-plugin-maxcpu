@@ -227,8 +227,7 @@ func _main() int {
 			commit)
 		return OK
 	}
-	if err != nil && flags.WroteHelp(err) {
-		fmt.Fprintf(os.Stdout, "%v\n", err)
+	if flags.WroteHelp(err) {
 		return OK
 	}
 	if err != nil {
