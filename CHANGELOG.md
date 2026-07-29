@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.0.18](https://github.com/monitoring-forge/mackerel-plugin-maxcpu/compare/v0.0.17...v0.0.18) - 2026-07-29
+
+- add pr-agent by @kazeburo in https://github.com/monitoring-forge/mackerel-plugin-maxcpu/pull/44
+- refactor flags and getCPUStat by @kazeburo in https://github.com/monitoring-forge/mackerel-plugin-maxcpu/pull/46
+
 ## [v0.0.17](https://github.com/monitoring-forge/mackerel-plugin-maxcpu/compare/v0.0.16...v0.0.17) - 2026-07-26
 
 - ci: bump the dependencies group with 3 updates by @dependabot[bot] in https://github.com/monitoring-forge/mackerel-plugin-maxcpu/pull/41
