@@ -4,30 +4,28 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
-func TestParseCPUstat(t *testing.T) {
-	tests := []struct {
-		input    string
-		expected float64
-		wantErr  bool
-	}{
-		{"100", 1.0, false},
-		{"0", 0.0, false},
-		{"200", 2.0, false},
-		{"abc", 0, true},
-	}
+func TestSetCPUStat(t *testing.T) {
+	var param float64
+	sp := [][]byte{[]byte("100"), []byte("200"), []byte("300"), []byte("0"), []byte("abc")}
+	err := setCPUStat(&param, 1, sp)
+	require.NoError(t, err, "setCPUStat() should not return error for valid float")
+	require.Equal(t, 2.0, param, "setCPUStat() should set param to 2.0")
 
-	for _, tt := range tests {
-		got, err := parseCPUstat([]byte(tt.input))
-		if (err != nil) != tt.wantErr {
-			t.Errorf("parseCPUstat(%q) error = %v, wantErr %v", tt.input, err, tt.wantErr)
-			continue
-		}
-		if !tt.wantErr && got != tt.expected {
-			t.Errorf("parseCPUstat(%q) = %v, want %v", tt.input, got, tt.expected)
-		}
-	}
+	err = setCPUStat(&param, 3, sp)
+	require.NoError(t, err, "setCPUStat() should not return error for valid float")
+	require.Equal(t, 0.0, param, "setCPUStat() should set param to 0.0")
+
+	err = setCPUStat(&param, 4, sp)
+	require.Error(t, err, "setCPUStat() should return error for invalid float")
+
+	// Test with index out of range
+	err = setCPUStat(&param, 10, sp)
+	require.NoError(t, err, "setCPUStat() with out of range index should not return error")
+	require.Equal(t, 0.0, param, "setCPUStat() with out of range index should not change param")
 }
 
 func TestGetCPUStat(t *testing.T) {
