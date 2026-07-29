@@ -211,8 +211,13 @@ func main() {
 
 func _main() int {
 	opt := &Opt{}
-	psr := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
+	psr := flags.NewParser(opt, flags.HelpFlag|flags.PrintErrors|flags.PassDoubleDash)
 	_, err := psr.Parse()
+	if flags.WroteHelp(err) {
+		return OK
+	} else if err != nil {
+		return UNKNOWN
+	}
 	if opt.Version {
 		if commit == "" {
 			commit = "dev"
@@ -226,14 +231,6 @@ func _main() int {
 			runtime.Version(),
 			commit)
 		return OK
-	}
-	if err != nil && flags.WroteHelp(err) {
-		fmt.Fprintf(os.Stdout, "%v\n", err)
-		return OK
-	}
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		return UNKNOWN
 	}
 
 	if opt.AsDaemon {

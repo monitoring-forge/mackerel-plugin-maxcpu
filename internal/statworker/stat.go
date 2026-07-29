@@ -27,14 +27,6 @@ var cpuLineHeader = []byte("cpu ")
 // https://github.com/prometheus/procfs/blob/c0c2a8be4d30a2e2cb95ea371a6f32a506d3e45e/proc_stat.go#L40
 var userHZ float64 = 100
 
-func parseCPUstat(b []byte) (float64, error) {
-	f, err := strconv.ParseFloat(string(b), 64)
-	if err != nil {
-		return f, err
-	}
-	return f / userHZ, nil
-}
-
 func GetStat() (*cpuStat, error) {
 	// read /proc/stat
 	f, err := os.Open("/proc/stat")
@@ -47,94 +39,77 @@ func GetStat() (*cpuStat, error) {
 	return getCPUStat(f)
 }
 
+func setCPUStat(param *float64, index int, sp [][]byte) error {
+	if len(sp) > index {
+		f, err := strconv.ParseFloat(string(sp[index]), 64)
+		if err != nil {
+			return err
+		}
+		*param = f / userHZ
+	}
+	return nil
+}
+
 // cpu  168487 7399 36999 7766545 3915 0 13480 0 0 0
 // qw(cpu-user cpu-nice cpu-system cpu-idle cpu-iowait cpu-irq cpu-softirq cpu-steal cpu-guest cpu-guest-nice);
+func parseCPUStatLine(line []byte) (*cpuStat, error) {
+	if !bytes.HasPrefix(line, cpuLineHeader) {
+		return nil, nil // continue scanning other lines
+	}
+	if len(line) <= len(cpuLineHeader)+1 {
+		return nil, nil // continue scanning other lines
+	}
+	fix := 0
+	if line[len(cpuLineHeader)+1] == ' ' {
+		fix = 1
+	}
+	cs := &cpuStat{}
+	sp := bytes.Fields(line[len(cpuLineHeader)+fix+1:])
+	if err := setCPUStat(&cs.User, 0, sp); err != nil {
+		return nil, err
+	}
+	if err := setCPUStat(&cs.Nice, 1, sp); err != nil {
+		return nil, err
+	}
+	if err := setCPUStat(&cs.System, 2, sp); err != nil {
+		return nil, err
+	}
+	if err := setCPUStat(&cs.Idle, 3, sp); err != nil {
+		return nil, err
+	}
+	if err := setCPUStat(&cs.Iowait, 4, sp); err != nil {
+		return nil, err
+	}
+	if err := setCPUStat(&cs.IRQ, 5, sp); err != nil {
+		return nil, err
+	}
+	if err := setCPUStat(&cs.SoftIRQ, 6, sp); err != nil {
+		return nil, err
+	}
+	if err := setCPUStat(&cs.Steal, 7, sp); err != nil {
+		return nil, err
+	}
+	if err := setCPUStat(&cs.Guest, 8, sp); err != nil {
+		return nil, err
+	}
+	if err := setCPUStat(&cs.GuestNice, 9, sp); err != nil {
+		return nil, err
+	}
+	return cs, nil
+}
+
 func getCPUStat(f *os.File) (*cpuStat, error) {
 	s := bufio.NewScanner(f)
 	for s.Scan() {
 		l := s.Bytes()
-		if bytes.HasPrefix(l, cpuLineHeader) {
-			if len(l) <= len(cpuLineHeader)+1 {
-				continue // Skip this line if it's too short
-			}
-			fix := 0
-			if l[len(cpuLineHeader)+1] == ' ' {
-				fix = 1
-			}
-			cs := &cpuStat{}
-			sp := bytes.Fields(l[len(cpuLineHeader)+fix+1:])
-			if len(sp) > 0 {
-				f, err := parseCPUstat(sp[0])
-				if err != nil {
-					return nil, err
-				}
-				cs.User = f
-			}
-			if len(sp) > 1 {
-				f, err := parseCPUstat(sp[1])
-				if err != nil {
-					return nil, err
-				}
-				cs.Nice = f
-			}
-			if len(sp) > 2 {
-				f, err := parseCPUstat(sp[2])
-				if err != nil {
-					return nil, err
-				}
-				cs.System = f
-			}
-			if len(sp) > 3 {
-				f, err := parseCPUstat(sp[3])
-				if err != nil {
-					return nil, err
-				}
-				cs.Idle = f
-			}
-			if len(sp) > 4 {
-				f, err := parseCPUstat(sp[4])
-				if err != nil {
-					return nil, err
-				}
-				cs.Iowait = f
-			}
-			if len(sp) > 5 {
-				f, err := parseCPUstat(sp[5])
-				if err != nil {
-					return nil, err
-				}
-				cs.IRQ = f
-			}
-			if len(sp) > 6 {
-				f, err := parseCPUstat(sp[6])
-				if err != nil {
-					return nil, err
-				}
-				cs.SoftIRQ = f
-			}
-			if len(sp) > 7 {
-				f, err := parseCPUstat(sp[7])
-				if err != nil {
-					return nil, err
-				}
-				cs.Steal = f
-			}
-			if len(sp) > 8 {
-				f, err := parseCPUstat(sp[8])
-				if err != nil {
-					return nil, err
-				}
-				cs.Guest = f
-			}
-			if len(sp) > 9 {
-				f, err := parseCPUstat(sp[9])
-				if err != nil {
-					return nil, err
-				}
-				cs.GuestNice = f
-			}
+		cs, err := parseCPUStatLine(l)
+		if err != nil {
+			return nil, err
+		}
+		if cs != nil {
 			return cs, nil
 		}
+		// continue scanning other lines
 	}
 	if err := s.Err(); err != nil {
 		return nil, fmt.Errorf("scanner error: %w", err)
