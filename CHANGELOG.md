@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.0.19](https://github.com/monitoring-forge/mackerel-plugin-maxcpu/compare/v0.0.18...v0.0.19) - 2026-07-29
+
+- refactor flags again by @kazeburo in https://github.com/monitoring-forge/mackerel-plugin-maxcpu/pull/47
+
 ## [v0.0.18](https://github.com/monitoring-forge/mackerel-plugin-maxcpu/compare/v0.0.17...v0.0.18) - 2026-07-29
 
 - add pr-agent by @kazeburo in https://github.com/monitoring-forge/mackerel-plugin-maxcpu/pull/44
