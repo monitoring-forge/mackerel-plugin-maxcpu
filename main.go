@@ -50,7 +50,10 @@ func runBinaryCheck(socket string, current time.Time) {
 				} else {
 					time.Sleep(10 * time.Second)
 					// sockファイルを消さないようsigkillで止める
-					syscall.Kill(syscall.Getpid(), syscall.SIGKILL)
+					err := syscall.Kill(syscall.Getpid(), syscall.SIGKILL)
+					if err != nil {
+						log.Printf("%v", err)
+					}
 				}
 			}
 		}
@@ -89,7 +92,10 @@ func runIdleCheck(w *statworker.Worker) {
 	ticker := time.NewTicker(1 * time.Second)
 	for range ticker.C {
 		if w.IdleTime() > maxIdleTime {
-			syscall.Kill(syscall.Getpid(), syscall.SIGKILL)
+			err := syscall.Kill(syscall.Getpid(), syscall.SIGKILL)
+			if err != nil {
+				log.Printf("%v", err)
+			}
 		}
 	}
 }
@@ -122,7 +128,11 @@ func runBackground(opt *Opt) int {
 		close(idleConnsClosed)
 	}()
 
-	os.Remove(opt.Socket)
+	err = os.Remove(opt.Socket)
+	if err != nil && !os.IsNotExist(err) {
+		log.Printf("%v", err)
+		return CRITICAL
+	}
 	unixListener, err := net.Listen("unix", opt.Socket)
 	if err != nil {
 		log.Printf("%v", err)

@@ -32,7 +32,12 @@ func TestGetCPUStat(t *testing.T) {
 	// Simulate a /proc/stat line
 	procStat := "cpu  168487 7399 36999 7766545 3915 0 13480 0 0 0\n"
 	f := tmpFileWithContent(t, procStat)
-	defer os.Remove(f.Name())
+	defer func() {
+		errRemove := os.Remove(f.Name())
+		if errRemove != nil {
+			t.Logf("failed to remove temp file: %v", errRemove)
+		}
+	}()
 
 	stat, err := getCPUStat(f)
 	if err != nil {
@@ -46,7 +51,12 @@ func TestGetCPUStat(t *testing.T) {
 func TestGetCPUStat_NoCPULine(t *testing.T) {
 	procStat := "intr 12345\nctxt 67890\n"
 	f := tmpFileWithContent(t, procStat)
-	defer os.Remove(f.Name())
+	defer func() {
+		errRemove := os.Remove(f.Name())
+		if errRemove != nil {
+			t.Logf("failed to remove temp file: %v", errRemove)
+		}
+	}()
 
 	_, err := getCPUStat(f)
 	if err == nil || !strings.Contains(err.Error(), "no cpu stats found") {
@@ -57,7 +67,12 @@ func TestGetCPUStat_NoCPULine(t *testing.T) {
 func TestGetCPUStat_ShortCPULine(t *testing.T) {
 	procStat := "cpu \n"
 	f := tmpFileWithContent(t, procStat)
-	defer os.Remove(f.Name())
+	defer func() {
+		errRemove := os.Remove(f.Name())
+		if errRemove != nil {
+			t.Logf("failed to remove temp file: %v", errRemove)
+		}
+	}()
 
 	_, err := getCPUStat(f)
 	if err == nil || !strings.Contains(err.Error(), "no cpu stats found") {
@@ -85,7 +100,12 @@ func TestGetCPUStat_HandlesExtraSpaces(t *testing.T) {
 	// Extra spaces between fields
 	procStat := "cpu    100   200  300  400  500  600  700  800  900  1000\n"
 	f := tmpFileWithContent(t, procStat)
-	defer os.Remove(f.Name())
+	defer func() {
+		errRemove := os.Remove(f.Name())
+		if errRemove != nil {
+			t.Logf("failed to remove temp file: %v", errRemove)
+		}
+	}()
 
 	stat, err := getCPUStat(f)
 	if err != nil {
@@ -100,7 +120,12 @@ func TestGetCPUStat_HandlesMissingFields(t *testing.T) {
 	// Only 4 fields
 	procStat := "cpu  100 200 300 400\n"
 	f := tmpFileWithContent(t, procStat)
-	defer os.Remove(f.Name())
+	defer func() {
+		errRemove := os.Remove(f.Name())
+		if errRemove != nil {
+			t.Logf("failed to remove temp file: %v", errRemove)
+		}
+	}()
 
 	stat, err := getCPUStat(f)
 	if err != nil {

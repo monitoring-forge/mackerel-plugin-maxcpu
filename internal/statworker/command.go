@@ -54,7 +54,7 @@ func (w *Worker) stats() ([]*maxcpu.Metric, error) {
 	w.usages = make([]*cpuUsage, historySize)
 	w.usages[0] = current
 
-	res := make([]*maxcpu.Metric, 0)
+	res := make([]*maxcpu.Metric, 0, 5)
 
 	if len(usages) < 2 {
 		return res, fmt.Errorf("calculating now")

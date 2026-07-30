@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"net"
 	"net/http"
 	"os"
@@ -26,7 +27,11 @@ func startTestConnectServer(socket string) (*http.Server, func()) {
 		panic(err)
 	}
 	srv := &http.Server{Handler: mux}
-	go srv.Serve(lis)
+	go func() {
+		if servErr := srv.Serve(lis); servErr != nil && servErr != http.ErrServerClosed {
+			log.Printf("Server error: %v", servErr)
+		}
+	}()
 	cleanup := func() {
 		srv.Close()
 		lis.Close()
