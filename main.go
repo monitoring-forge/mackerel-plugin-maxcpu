@@ -41,16 +41,20 @@ func runBinaryCheck(socket string, current time.Time) {
 	defer ticker.Stop()
 	for range ticker.C {
 		modified, err := selfModified()
-		if err == nil {
-			if modified != current {
-				cmd := exec.Command(os.Args[0], "--as-daemon", "--socket", socket)
-				err = cmd.Start()
-				if err != nil {
-					log.Printf("%v", err)
-				} else {
-					time.Sleep(10 * time.Second)
-					// sockファイルを消さないようsigkillで止める
-					syscall.Kill(syscall.Getpid(), syscall.SIGKILL)
+		if err != nil {
+			continue
+		}
+		if modified != current {
+			cmd := exec.Command(os.Args[0], "--as-daemon", "--socket", socket)
+			errCmd := cmd.Start()
+			if errCmd != nil {
+				log.Printf("%v", errCmd)
+			} else {
+				time.Sleep(10 * time.Second)
+				// sockファイルを消さないようsigkillで止める
+				errKill := syscall.Kill(syscall.Getpid(), syscall.SIGKILL)
+				if errKill != nil {
+					log.Printf("%v", errKill)
 				}
 			}
 		}
@@ -89,7 +93,10 @@ func runIdleCheck(w *statworker.Worker) {
 	ticker := time.NewTicker(1 * time.Second)
 	for range ticker.C {
 		if w.IdleTime() > maxIdleTime {
-			syscall.Kill(syscall.Getpid(), syscall.SIGKILL)
+			err := syscall.Kill(syscall.Getpid(), syscall.SIGKILL)
+			if err != nil {
+				log.Printf("%v", err)
+			}
 		}
 	}
 }
@@ -122,7 +129,11 @@ func runBackground(opt *Opt) int {
 		close(idleConnsClosed)
 	}()
 
-	os.Remove(opt.Socket)
+	err = os.Remove(opt.Socket)
+	if err != nil && !os.IsNotExist(err) {
+		log.Printf("%v", err)
+		return CRITICAL
+	}
 	unixListener, err := net.Listen("unix", opt.Socket)
 	if err != nil {
 		log.Printf("%v", err)
