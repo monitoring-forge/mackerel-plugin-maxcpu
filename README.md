@@ -74,7 +74,7 @@ maxcpu.us_sy_wa_si_st_usage.75pt        0.251256        1604022058
 
 ```ini
 [plugin.metrics.maxcpu]
-Command = ["mackerel-plugin-maxcpu", "-s", "/var/run/maxcpu.sock"]
+Command = ["mackerel-plugin-maxcpu", "-s", "/var/run/mackerel-agent/maxcpu.sock"]
 ```
 
 設定後に Mackerel エージェントを再起動します。
