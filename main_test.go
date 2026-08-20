@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"net"
 	"net/http"
 	"os"
@@ -29,7 +29,7 @@ func startTestConnectServer(socket string) (*http.Server, func()) {
 	srv := &http.Server{Handler: mux}
 	go func() {
 		if servErr := srv.Serve(lis); servErr != nil && servErr != http.ErrServerClosed {
-			log.Printf("Server error: %v", servErr)
+			fmt.Fprintf(os.Stderr, "server error: %v\n", servErr)
 		}
 	}()
 	cleanup := func() {

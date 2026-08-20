@@ -3,31 +3,22 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"os"
 	"os/exec"
 	"os/signal"
-	"path/filepath"
-	"runtime"
 	"syscall"
 	"time"
 
 	connect "github.com/bufbuild/connect-go"
-	"github.com/jessevdk/go-flags"
+	"github.com/monitoring-forge/flagrun"
 	"github.com/monitoring-forge/mackerel-plugin-maxcpu/internal/statworker"
 	maxcpuconnect "github.com/monitoring-forge/mackerel-plugin-maxcpu/maxcpu/maxcpuconnect"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 var version string
-var commit string
-
-const UNKNOWN = 3
-const CRITICAL = 2
-const WARNING = 1
-const OK = 0
 
 type Opt struct {
 	Socket   string `short:"s" long:"socket" required:"true" description:"Socket file used calcurating daemon" `
@@ -48,13 +39,13 @@ func runBinaryCheck(socket string, current time.Time) {
 			cmd := exec.Command(os.Args[0], "--as-daemon", "--socket", socket)
 			errCmd := cmd.Start()
 			if errCmd != nil {
-				log.Printf("%v", errCmd)
+				fmt.Fprintf(os.Stderr, "%v\n", errCmd)
 			} else {
 				time.Sleep(10 * time.Second)
 				// sockファイルを消さないようsigkillで止める
 				errKill := syscall.Kill(syscall.Getpid(), syscall.SIGKILL)
 				if errKill != nil {
-					log.Printf("%v", errKill)
+					fmt.Fprintf(os.Stderr, "%v\n", errKill)
 				}
 			}
 		}
@@ -70,21 +61,19 @@ func selfModified() (time.Time, error) {
 	return fs.ModTime(), nil
 }
 
-func execBackground(opt *Opt) int {
+func (opt *Opt) execBackground() error {
 	// check proc before exec
 	_, err := statworker.GetStat()
 	if err != nil {
-		log.Printf("%v", err)
-		return CRITICAL
+		return err
 	}
 
 	cmd := exec.Command(os.Args[0], "--as-daemon", "--socket", opt.Socket)
 	err = cmd.Start()
 	if err != nil {
-		log.Printf("%v", err)
-		return CRITICAL
+		return err
 	}
-	return OK
+	return nil
 }
 
 var maxIdleTime int64 = 600
@@ -95,18 +84,17 @@ func runIdleCheck(w *statworker.Worker) {
 		if w.IdleTime() > maxIdleTime {
 			err := syscall.Kill(syscall.Getpid(), syscall.SIGKILL)
 			if err != nil {
-				log.Printf("%v", err)
+				fmt.Fprintf(os.Stderr, "%v\n", err)
 			}
 		}
 	}
 }
 
-func runBackground(opt *Opt) int {
+func (opt *Opt) runBackground() error {
 
 	modified, err := selfModified()
 	if err != nil {
-		log.Printf("%v", err)
-		return CRITICAL
+		return err
 	}
 
 	worker := statworker.New()
@@ -131,50 +119,46 @@ func runBackground(opt *Opt) int {
 
 	err = os.Remove(opt.Socket)
 	if err != nil && !os.IsNotExist(err) {
-		log.Printf("%v", err)
-		return CRITICAL
+		return err
 	}
 	unixListener, err := net.Listen("unix", opt.Socket)
 	if err != nil {
-		log.Printf("%v", err)
-		return CRITICAL
+		return err
 	}
 	if err := os.Chmod(opt.Socket, 0600); err != nil {
-		log.Printf("%v", err)
-		return CRITICAL
+		return err
 	}
 	srv := &http.Server{Handler: mux}
 	go func() {
 		if err := srv.Serve(unixListener); err != nil && err != http.ErrServerClosed {
-			log.Printf("%v", err)
+			fmt.Fprintf(os.Stderr, "%v\n", err)
 		}
 	}()
 	<-idleConnsClosed
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	_ = srv.Shutdown(ctx)
-	return OK
+	return nil
 }
 
-func checkDaemonAlive(opt *Opt) bool {
+func (opt *Opt) checkDaemonAlive() bool {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	req := connect.NewRequest(&emptypb.Empty{})
 	_, err := opt.client.Hello(ctx, req)
 	if err != nil {
-		log.Printf("check daemon alive failed: %v", err)
+		fmt.Fprintf(os.Stderr, "check daemon alive failed: %v\n", err)
 		return false
 	}
 	return true
 }
 
-func getStats(opt *Opt) int {
+func (opt *Opt) getStats() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	res, err := opt.client.GetStats(ctx, connect.NewRequest(&emptypb.Empty{}))
 	if err != nil {
-		log.Printf("%v", err)
-		return CRITICAL
+		return err
 	}
 	for _, m := range res.Msg.Metrics {
 		fmt.Printf(
@@ -184,7 +168,7 @@ func getStats(opt *Opt) int {
 			m.Epoch,
 		)
 	}
-	return OK
+	return nil
 }
 
 func makeClient(socket string) (maxcpuconnect.MaxCPUClient, error) {
@@ -216,51 +200,39 @@ func makeClient(socket string) (maxcpuconnect.MaxCPUClient, error) {
 	return c, nil
 }
 
-func main() {
-	os.Exit(_main())
-}
-
-func _main() int {
-	opt := &Opt{}
-	psr := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
-	_, err := psr.Parse()
-	if opt.Version {
-		if commit == "" {
-			commit = "dev"
-		}
-		fmt.Printf(
-			"%s-%s\n%s/%s, %s, %s\n",
-			filepath.Base(os.Args[0]),
-			version,
-			runtime.GOOS,
-			runtime.GOARCH,
-			runtime.Version(),
-			commit)
-		return OK
-	} else if flags.WroteHelp(err) {
-		fmt.Fprintf(os.Stdout, "%v\n", err)
-		return OK
-	} else if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		return UNKNOWN
-	}
-
+func (opt *Opt) Run(_ []string) (error, int) {
 	if opt.AsDaemon {
-		return runBackground(opt)
+		err := opt.runBackground()
+		if err != nil {
+			return err, flagrun.CRITICAL
+		}
+		return nil, flagrun.OK
 	}
 
 	client, err := makeClient(opt.Socket)
 	if err != nil {
-		log.Printf("%v", err)
-		return CRITICAL
+		return err, flagrun.CRITICAL
 	}
 	opt.client = client
 
-	if !checkDaemonAlive(opt) {
+	if !opt.checkDaemonAlive() {
 		// exec daemon
-		log.Printf("start background process")
-		return execBackground(opt)
+		fmt.Fprintf(os.Stderr, "start background process\n")
+		err := opt.execBackground()
+		if err != nil {
+			return err, flagrun.CRITICAL
+		}
+		return nil, flagrun.OK
 	}
 
-	return getStats(opt)
+	err = opt.getStats()
+	if err != nil {
+		return err, flagrun.CRITICAL
+	}
+	return nil, flagrun.OK
+
+}
+
+func main() {
+	os.Exit(flagrun.Go(&Opt{}, flagrun.Version(version)))
 }
