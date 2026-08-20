@@ -1,7 +1,8 @@
 package statworker
 
 import (
-	"log"
+	"fmt"
+	"os"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -124,7 +125,7 @@ func (w *Worker) Run() {
 
 		cpu, err := GetStat()
 		if err != nil {
-			log.Printf("%v", err)
+			fmt.Fprintf(os.Stderr, "%v\n", err)
 			continue
 		}
 		w.calculatingGap(cpu)

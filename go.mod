@@ -4,17 +4,17 @@ go 1.25.0
 
 require (
 	github.com/bufbuild/connect-go v1.10.0
-	github.com/jessevdk/go-flags v1.6.1
-	google.golang.org/protobuf v1.36.11
+	google.golang.org/protobuf v1.36.12
 )
 
 require (
-	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
+	github.com/jessevdk/go-flags v1.6.1 // indirect
+	github.com/mackerelio/checkers v0.2.1 // indirect
+	go.yaml.in/yaml/v3 v3.0.5 // indirect
 )
 
 require (
-	github.com/stretchr/testify v1.11.1
+	github.com/monitoring-forge/flagrun v0.0.8
+	github.com/stretchr/testify v1.12.1
 	golang.org/x/sys v0.47.0 // indirect
 )
