@@ -1,5 +1,14 @@
 # Changelog
 
+## [v0.0.20](https://github.com/monitoring-forge/mackerel-plugin-maxcpu/compare/v0.0.19...v0.0.20) - 2026-08-20
+
+- add lint and fix some issue by @kazeburo in https://github.com/monitoring-forge/mackerel-plugin-maxcpu/pull/49
+- Sync files with `monitoring-forge/github-common` by @monitoring-forge-files-sync-action[bot] in https://github.com/monitoring-forge/mackerel-plugin-maxcpu/pull/51
+- Sync files with `monitoring-forge/github-common` by @monitoring-forge-files-sync-action[bot] in https://github.com/monitoring-forge/mackerel-plugin-maxcpu/pull/52
+- ci: bump the-pr-agent/pr-agent from 0.41.0 to 0.41.1 in the dependencies group by @dependabot[bot] in https://github.com/monitoring-forge/mackerel-plugin-maxcpu/pull/53
+- fix: update dependencies and improve error logging by @kazeburo in https://github.com/monitoring-forge/mackerel-plugin-maxcpu/pull/54
+- docs: improve README with detailed usage and installation instructions by @kazeburo in https://github.com/monitoring-forge/mackerel-plugin-maxcpu/pull/55
+
 ## [v0.0.19](https://github.com/monitoring-forge/mackerel-plugin-maxcpu/compare/v0.0.18...v0.0.19) - 2026-07-29
 
 - refactor flags again by @kazeburo in https://github.com/monitoring-forge/mackerel-plugin-maxcpu/pull/47
