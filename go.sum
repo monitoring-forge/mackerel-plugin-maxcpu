@@ -6,8 +6,8 @@ github.com/jessevdk/go-flags v1.6.1 h1:Cvu5U8UGrLay1rZfv/zP7iLpSHGUZ/Ou68T0iX1bB
 github.com/jessevdk/go-flags v1.6.1/go.mod h1:Mk8T1hIAWpOiJiHa9rJASDK2UGWji0EuPGBnNLMooyc=
 github.com/mackerelio/checkers v0.2.1 h1:vRXzAT+CEyaLjSrHVxKUBjyWq1kfo8QcI8ZoSKZATQs=
 github.com/mackerelio/checkers v0.2.1/go.mod h1:CW3k/5bvHhxDrfKgWvMvNH0R51zco141ZVxlI7o/KAc=
-github.com/monitoring-forge/flagrun v0.0.8 h1:CEoMMdFpZ4KOTiBy2mAUQtlgFsTqpvpEoLjzanDgEtw=
-github.com/monitoring-forge/flagrun v0.0.8/go.mod h1:yAwxGIEx81wU4JOMp6hz7SdSYWgT/Hr4JXEdHlEn1mw=
+github.com/monitoring-forge/flagrun v0.0.10 h1:KybhBetKlDxuIBj/rilKQWE60fynVzReKl+KLBcWCuc=
+github.com/monitoring-forge/flagrun v0.0.10/go.mod h1:hxpSc4cgzDMi6lj40T97GNO/PglgM5FW79fRGdzexBY=
 github.com/stretchr/testify v1.12.1 h1:EuwCh5fleGS7H32xRwO3wRGT7DxrDhLAT6FF8MpWDWE=
 github.com/stretchr/testify v1.12.1/go.mod h1:MDEgiDPPsNp5cuIrHPPCyornHKgEVbtFUmoNlxoYthg=
 go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
