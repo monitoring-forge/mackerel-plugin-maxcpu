@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.0.22](https://github.com/monitoring-forge/mackerel-plugin-maxcpu/compare/v0.0.21...v0.0.22) - 2026-11-13
+
+- ci: bump Songmu/tagpr from 1.21.4 to 1.22.0 in the tagpr group by @dependabot[bot] in https://github.com/monitoring-forge/mackerel-plugin-maxcpu/pull/75
+
 ## [v0.0.21](https://github.com/monitoring-forge/mackerel-plugin-maxcpu/compare/v0.0.20...v0.0.21) - 2026-10-31
 
 - Sync files with `monitoring-forge/github-common` by @monitoring-forge-files-sync-action[bot] in https://github.com/monitoring-forge/mackerel-plugin-maxcpu/pull/57
