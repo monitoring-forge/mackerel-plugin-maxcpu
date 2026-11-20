@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.0.22](https://github.com/monitoring-forge/mackerel-plugin-maxcpu/compare/v0.0.21...v0.0.22) - 2026-11-20
+
+- ci: bump Songmu/tagpr from 1.21.4 to 1.22.0 in the tagpr group by @dependabot[bot] in https://github.com/monitoring-forge/mackerel-plugin-maxcpu/pull/75
+- go: bump the dependencies group with 2 updates by @dependabot[bot] in https://github.com/monitoring-forge/mackerel-plugin-maxcpu/pull/74
+- go: bump golang.org/x/sys from 0.49.0 to 0.50.0 in the dependencies group by @dependabot[bot] in https://github.com/monitoring-forge/mackerel-plugin-maxcpu/pull/77
+
 ## [v0.0.21](https://github.com/monitoring-forge/mackerel-plugin-maxcpu/compare/v0.0.20...v0.0.21) - 2026-10-31
 
 - Sync files with `monitoring-forge/github-common` by @monitoring-forge-files-sync-action[bot] in https://github.com/monitoring-forge/mackerel-plugin-maxcpu/pull/57
